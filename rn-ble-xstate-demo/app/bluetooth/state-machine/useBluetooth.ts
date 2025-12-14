@@ -1,76 +1,31 @@
-import { useEffect } from 'react';
-import { Peripheral } from 'react-native-ble-manager';
-import BleManager from 'react-native-ble-manager';
 import { useSelector } from '@xstate/react';
 import { createActor } from 'xstate';
 import {
   bleMachine,
-  selectButtonState,
-  selectCurrentState,
-  selectDeviceId,
-  selectDeviceName,
-  selectDiscoveredDevices,
-  selectError,
-  selectIsConnected,
-  selectIsConnecting,
-  selectIsIdle,
-  selectIsScanning,
-  selectLedState,
+
 } from './ble-machine';
+import { selectButtonState, selectCurrentState, selectDeviceId, selectDeviceName, selectDiscoveredDevices, selectError, selectIsConnected, selectIsConnecting, selectIsIdle, selectIsScanning, selectLedState } from './selectors';
 
 // Create a singleton actor for the BLE state machine
 const bleActor = createActor(bleMachine);
 bleActor.start();
 
 export function useBluetooth() {
-  const state = bleActor.getSnapshot();
   const send = bleActor.send;
 
-  // Set up BLE event listeners to send events to the state machine
-  useEffect(() => {
-    const discoverListener = BleManager.onDiscoverPeripheral((peripheral: Peripheral) => {
-      send({ type: 'DEVICE_DISCOVERED', peripheral });
-    });
-
-    const updateValueListener = BleManager.onDidUpdateValueForCharacteristic(
-      (args: { characteristic: string; value: number[]; peripheral: string; service: string }) => {
-        const buttonCharUuid = '00001524-1212-EFDE-1523-785FEABCD123';
-        if (args.characteristic.toLowerCase() === buttonCharUuid.toLowerCase()) {
-          const buttonPressed = args.value[0] !== 0;
-          send({ type: 'BUTTON_STATE_CHANGED', value: buttonPressed });
-        }
-      }
-    );
-
-    const disconnectListener = BleManager.onDisconnectPeripheral(() => {
-      // If we get an unexpected disconnection, trigger disconnect handling
-      if (selectIsConnected(bleActor.getSnapshot())) {
-        send({ type: 'DISCONNECT' });
-      }
-    });
-
-    return () => {
-      discoverListener.remove();
-      updateValueListener.remove();
-      disconnectListener.remove();
-    };
-  }, [send]);
+  // BLE event listeners are now handled internally by the state machine
+  // using fromCallback actors (scanListener, connectedListener)
 
   return {
-    state,
-    send,
-
     // Actions
     start: () => send({ type: 'START' }),
     scan: () => send({ type: 'SCAN' }),
-    stopScan: () => send({ type: 'STOP_SCAN' }),
     selectDevice: (deviceId: string, deviceName?: string) =>
       send({ type: 'SELECT_DEVICE', deviceId, deviceName }),
     disconnect: () => send({ type: 'DISCONNECT' }),
     toggleLed: () => send({ type: 'TOGGLE_LED' }),
     readButton: () => send({ type: 'READ_BUTTON' }),
     clearStoredDevice: () => send({ type: 'CLEAR_STORED_DEVICE' }),
-    retry: () => send({ type: 'RETRY' }),
 
     // Selectors
     deviceId: useSelector(bleActor, selectDeviceId),
@@ -86,5 +41,3 @@ export function useBluetooth() {
     currentState: useSelector(bleActor, selectCurrentState),
   };
 }
-
-

@@ -126,8 +126,8 @@ export default function HomeScreen() {
     setDebugLogs([]);
   };
 
-  const handleClearDeviceId = () => {
-    addLog('action', '🗑 Clearing stored device ID...');
+  const handleClearDevice = () => {
+    addLog('action', '🗑 Clearing stored device...');
     clearStoredDevice();
   };
 
@@ -295,7 +295,7 @@ export default function HomeScreen() {
         
         <Pressable 
           style={styles.clearDeviceButton} 
-          onPress={handleClearDeviceId}
+          onPress={handleClearDevice}
         >
           <ThemedText style={styles.clearDeviceButtonText}>Clear Device</ThemedText>
         </Pressable>

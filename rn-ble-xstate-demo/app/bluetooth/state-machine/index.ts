@@ -1,6 +1,6 @@
+export { bleMachine, type BleContext, type BleEvent } from './ble-machine';
+
 export {
-  bleMachine,
-  // Selectors
   selectButtonState,
   selectCurrentState,
   selectDeviceId,
@@ -14,10 +14,7 @@ export {
   selectIsInit,
   selectIsScanning,
   selectLedState,
-  // Types
-  type BleContext,
-  type BleEvent,
-} from './ble-machine';
+} from './selectors';
 
 export { useBluetooth } from './useBluetooth';
 
