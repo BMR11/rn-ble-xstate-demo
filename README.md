@@ -96,7 +96,7 @@ The peripheral advertises the LBS service and allows the central (this React Nat
 1. Clone the repository:
    ```bash
    git clone https://github.com/your-repo/RN-bluetooth-state-with-xstate.git
-   cd RN-bluetooth-state-with-xstate/rn-ble-xstate-demo
+   cd rn-ble-xstate-demo
    ```
 
 2. Install dependencies:
