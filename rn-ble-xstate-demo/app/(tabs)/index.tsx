@@ -6,8 +6,18 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
+import { useEffect } from 'react';
+import BleManager from 'react-native-ble-manager';
 
 export default function HomeScreen() {
+  
+  useEffect(() => {
+    BleManager.start().then(() => {
+      console.log('BLE Manager started');
+    }).catch((error) => {
+      console.error('Error starting BLE Manager:', error);
+    });
+  }, []);
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
