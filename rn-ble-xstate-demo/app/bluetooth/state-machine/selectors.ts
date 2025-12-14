@@ -17,6 +17,10 @@ export const selectIsInit = (state: { value: unknown }) => {
   return state.value === 'init';
 };
 
+export const selectIsWaitingForBluetooth = (state: { value: unknown }) => {
+  return state.value === 'waitingForBluetooth';
+};
+
 export const selectIsScanning = (state: { value: unknown }) => {
   return state.value === 'scanning';
 };

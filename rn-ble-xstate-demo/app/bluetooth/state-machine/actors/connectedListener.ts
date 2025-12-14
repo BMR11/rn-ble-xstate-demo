@@ -16,8 +16,11 @@ export const connectedListener = fromCallback<BleEvent>(({ sendBack }) => {
     }
   );
 
-  const disconnectListener = BleManager.onDisconnectPeripheral(() => {
-    sendBack({ type: 'DISCONNECT' });
+  const disconnectListener = BleManager.onDisconnectPeripheral((data) => {
+    sendBack({ 
+      type: 'CONNECTION_LOST', 
+      reason: data?.peripheral ? 'Device disconnected unexpectedly' : 'Connection lost' 
+    });
   });
 
   return () => {

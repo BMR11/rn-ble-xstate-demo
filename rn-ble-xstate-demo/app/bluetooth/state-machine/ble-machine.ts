@@ -124,7 +124,7 @@ export const bleMachine = setup({
           },
         ],
         onError: {
-          target: 'init',
+          target: 'waitingForBluetooth',
           actions: [
             {
               type: 'setError',
@@ -139,6 +139,22 @@ export const bleMachine = setup({
         START: {
           target: 'init',
           reenter: true,
+          actions: ['clearError'],
+        },
+      },
+    },
+
+    // Waiting for Bluetooth - retry after delay
+    waitingForBluetooth: {
+      after: {
+        2000: {
+          target: 'init',
+          actions: ['clearError'],
+        },
+      },
+      on: {
+        START: {
+          target: 'init',
           actions: ['clearError'],
         },
       },
@@ -246,6 +262,18 @@ export const bleMachine = setup({
         },
         DISCONNECT: {
           target: '.disconnecting',
+        },
+        CONNECTION_LOST: {
+          target: '#bleMachine.init',
+          actions: [
+            'clearDevice',
+            {
+              type: 'setError',
+              params: ({ event }) => ({
+                message: event.reason || 'Connection lost unexpectedly',
+              }),
+            },
+          ],
         },
       },
       initial: 'ready',

@@ -13,6 +13,7 @@ export {
   selectIsIdle,
   selectIsInit,
   selectIsScanning,
+  selectIsWaitingForBluetooth,
   selectLedState,
 } from './selectors';
 

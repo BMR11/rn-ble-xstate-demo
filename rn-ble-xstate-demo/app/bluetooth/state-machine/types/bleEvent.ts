@@ -8,6 +8,7 @@ export type BleEvent =
   | { type: 'SCAN' }
   | { type: 'SELECT_DEVICE'; deviceId: string; deviceName?: string }
   | { type: 'DISCONNECT' }
+  | { type: 'CONNECTION_LOST'; reason?: string }
   | { type: 'DEVICE_DISCOVERED'; peripheral: Peripheral }
   | { type: 'BUTTON_STATE_CHANGED'; value: boolean }
   | { type: 'TOGGLE_LED' }
