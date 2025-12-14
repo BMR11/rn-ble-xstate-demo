@@ -81,6 +81,10 @@ The peripheral advertises the LBS service and allows the central (this React Nat
 - Read/subscribe to button state notifications
 - Write to LED characteristic to toggle LED state
 
+## Demo
+![demo2](https://github.com/user-attachments/assets/22c4728c-df89-483c-b337-f4546f79c973)
+
+
 ## Setup
 
 ### Prerequisites
