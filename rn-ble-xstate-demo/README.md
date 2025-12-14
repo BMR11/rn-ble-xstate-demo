@@ -1,50 +1,205 @@
-# Welcome to your Expo app 👋
+# React Native BLE with XState Demo
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native (Expo) application demonstrating how **XState** can simplify complex Bluetooth Low Energy (BLE) communication flows. This project showcases a clean, maintainable state machine architecture for handling BLE operations including scanning, connecting, service discovery, and characteristic read/write operations.
 
-## Get started
+## Purpose
 
-1. Install dependencies
+BLE communication involves complex state management with multiple asynchronous operations, error handling, and edge cases (connection loss, permission denials, Bluetooth state changes, etc.). This project demonstrates how XState state machines can:
 
+- **Simplify complex async flows** - Handle scanning, connecting, and data exchange in a predictable manner
+- **Manage error states gracefully** - Automatic recovery and retry mechanisms
+- **Provide clear state visibility** - Know exactly what state your BLE connection is in
+- **Handle edge cases** - Connection loss, Bluetooth off, permission denied, etc.
+
+## Architecture
+
+```
+app/bluetooth/
+├── constants.ts           # BLE UUIDs and storage keys
+├── state-machine/
+│   ├── actors/            # XState actors (async operations)
+│   │   ├── initializeBle.ts
+│   │   ├── scanForDevices.ts
+│   │   ├── scanListener.ts
+│   │   ├── connectAndSetup.ts
+│   │   ├── connectedListener.ts
+│   │   ├── writeLedState.ts
+│   │   ├── readButtonState.ts
+│   │   └── disconnectFromDevice.ts
+│   ├── types/             # TypeScript types
+│   │   ├── bleContext.ts
+│   │   └── bleEvent.ts
+│   ├── ble-machine.ts     # Main XState machine definition
+│   ├── selectors.ts       # State selectors for React
+│   ├── useBluetooth.ts    # React hook for BLE operations
+│   └── index.ts           # Barrel exports
+└── ui/
+    └── index.tsx          # UI component
+```
+
+## State Machine States
+
+```
+idle → init → scanning → connecting → connected
+         ↑        ↑           ↑           ↓
+         └────────┴───────────┴───────────┘
+                    (on error/disconnect)
+```
+
+- **idle** - Waiting for user to start BLE
+- **init** - Checking permissions, starting BLE, loading stored device
+- **waitingForBluetooth** - Waiting for Bluetooth to be enabled (auto-retry)
+- **scanning** - Scanning for LBS (LED Button Service) devices
+- **connecting** - Connecting to device, discovering services, setting up notifications
+- **connected** - Connected and ready for characteristic operations
+  - **ready** - Idle connected state
+  - **togglingLed** - Writing LED characteristic
+  - **readingButton** - Reading button characteristic
+  - **disconnecting** - Disconnecting from device
+
+## LBS (LED Button Service)
+
+This demo uses the Nordic LED Button Service (LBS) GATT profile:
+
+| Name | UUID |
+|------|------|
+| LBS Service | `00001523-1212-EFDE-1523-785FEABCD123` |
+| Button Characteristic | `00001524-1212-EFDE-1523-785FEABCD123` |
+| LED Characteristic | `00001525-1212-EFDE-1523-785FEABCD123` |
+
+## Peripheral Device
+
+For testing, use the **MyPeripheral** Swift app as the BLE peripheral:
+
+👉 **[SwiftCoreBluetoothDemo/MyPeripheral](https://github.com/BMR11/SwiftCoreBluetoothDemo/tree/main/MyPeripheral)**
+
+This can run on:
+- macOS (as a Mac app)
+- iOS (as an iOS app)
+
+The peripheral advertises the LBS service and allows the central (this React Native app) to:
+- Read/subscribe to button state notifications
+- Write to LED characteristic to toggle LED state
+
+## Setup
+
+### Prerequisites
+
+- Node.js 18+
+- Android Studio (for Android development)
+- Xcode (for iOS development)
+- A physical Android/iOS device (BLE doesn't work on emulators/simulators)
+- The MyPeripheral app running on macOS or iOS
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/RN-bluetooth-state-with-xstate.git
+   cd RN-bluetooth-state-with-xstate/rn-ble-xstate-demo
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. For Android, create a development build:
    ```bash
-   npx expo start
+   npx expo run:android
    ```
 
-In the output, you'll find options to open the app in a
+4. For iOS, create a development build:
+   ```bash
+   npx expo run:ios
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+> **Note:** Expo Go does not support native BLE modules. You must use a development build.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Usage
 
-## Get a fresh project
+1. **Start the Peripheral**: Run the MyPeripheral app on your Mac or iOS device
 
-When you're ready, run:
+2. **Start the Central**: Launch this React Native app on your Android/iOS device
 
-```bash
-npm run reset-project
+3. **Connect**:
+   - Press "Start BLE" to initialize Bluetooth and request permissions
+   - The app will scan for devices advertising the LBS service
+   - Tap a device to connect
+   - Once connected, you can:
+     - See the button state from the peripheral
+     - Toggle the LED on the peripheral
+     - Read the current button state
+
+4. **Auto-reconnect**: The app stores the last connected device and will attempt to reconnect on next launch
+
+## Testing
+
+This project was **tested on Android** as the central device. iOS should also work but has not been extensively tested.
+
+### Test Scenarios
+
+- ✅ Scan for LBS devices
+- ✅ Connect to peripheral
+- ✅ Service discovery
+- ✅ Read button characteristic
+- ✅ Subscribe to button notifications
+- ✅ Write LED characteristic
+- ✅ Handle unexpected disconnection
+- ✅ Handle Bluetooth turned off
+- ✅ Auto-reconnect to stored device
+- ✅ Permission handling (Android 12+)
+
+## Key Dependencies
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| xstate | ^5.25.0 | State machine library |
+| @xstate/react | ^6.0.0 | React bindings for XState |
+| react-native-ble-manager | ^12.4.1 | BLE operations |
+| @react-native-async-storage/async-storage | 2.2.0 | Persist device ID |
+| expo | ~54.0.29 | React Native framework |
+
+## XState Patterns Used
+
+### Actors (fromPromise)
+Async operations like connecting, reading, writing are modeled as promise-based actors:
+
+```typescript
+const connectAndSetup = fromPromise<{ buttonState: boolean }, { deviceId: string }>(
+  async ({ input }) => {
+    await BleManager.connect(input.deviceId);
+    // ... service discovery, notifications setup
+    return { buttonState };
+  }
+);
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Callback Actors (fromCallback)
+Event listeners are modeled as callback actors with cleanup:
 
-## Learn more
+```typescript
+const connectedListener = fromCallback<BleEvent>(({ sendBack }) => {
+  const listener = BleManager.onDisconnectPeripheral(() => {
+    sendBack({ type: 'CONNECTION_LOST', reason: 'Device disconnected' });
+  });
+  return () => listener.remove(); // Cleanup
+});
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### Selectors
+React components use selectors to access state:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```typescript
+const isConnected = useSelector(actor, selectIsConnected);
+const deviceName = useSelector(actor, selectDeviceName);
+const error = useSelector(actor, selectError);
+```
 
-## Join the community
+## License
 
-Join our community of developers creating universal apps.
+MIT
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
