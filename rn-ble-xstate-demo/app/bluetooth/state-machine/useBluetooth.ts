@@ -22,7 +22,7 @@ import {
 const bleActor = createActor(bleMachine);
 bleActor.start();
 
-export function useBleMachine() {
+export function useBluetooth() {
   const state = bleActor.getSnapshot();
   const send = bleActor.send;
 
@@ -87,6 +87,4 @@ export function useBleMachine() {
   };
 }
 
-// Export the singleton actor for direct access if needed
-export { bleActor };
 

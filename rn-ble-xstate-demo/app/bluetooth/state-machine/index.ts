@@ -19,5 +19,5 @@ export {
   type BleEvent,
 } from './ble-machine';
 
-export { bleActor, useBleMachine } from './use-ble-machine';
+export { useBluetooth } from './useBluetooth';
 
